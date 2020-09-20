@@ -14,12 +14,14 @@ const wsConnection = (server) => {
       sendMessages();
     });
   });
-
-  const sendMessages = () => {
-    Message.findAll().then((result) =>{
-      clients.forEach((client) => client.send(JSON.stringify(result)));
-    }).catch((err) => console.log(err));
-  };
 };
 
+const sendMessages = () => {
+  Message.findAll().then((result) =>{
+    clients.forEach((client) => client.send(JSON.stringify(result)));
+  }).catch((err) => console.log(err));
+};
+
+
 exports.wsConnection = wsConnection;
+exports.sendMessages = sendMessages;

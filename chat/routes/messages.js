@@ -2,7 +2,7 @@ const { response } = require('express');
 var express = require('express');
 var router = express.Router();
 const cors = require('cors');
-
+const ws = require("../wslib");
 
 const Joi = require('joi');
 const Message = require('../models/message');
@@ -35,6 +35,7 @@ router.post('/', cors(), function(req, res, next){
             res.send(result);
         }
     );
+    ws.sendMessages();
 });
 
 router.put("/", (req, res) => {
@@ -46,6 +47,7 @@ router.put("/", (req, res) => {
         if(response[0] !== 0) res.send({message: "Message updated."});
         else res.status(404).send({ message: "Message was not found."})
     });
+    ws.sendMessages();
 });
 
 router.delete('/:id', (req, res) => {
@@ -54,9 +56,12 @@ router.delete('/:id', (req, res) => {
             ts: req.params.id
         },
     }).then((response) => {
-        if(response ===1) res.status(204).send();
+        if(response ===1){
+            res.status(204).send();
+        }
         else res.status(404).send({message: "Client was not found"});
     });
+    ws.sendMessages();
 });
 
 const validateMessage = (messageR) => {
