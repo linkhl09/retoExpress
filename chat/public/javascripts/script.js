@@ -1,13 +1,13 @@
 const ws = new WebSocket("ws://localhost:3000");
 
-
 ws.onmessage = (msg) => {
-  console.log("On message");
   renderMessages(JSON.parse(msg.data));
 };
 
 const renderMessages = (data) => {
-  const html = data.map((item) => `<p>${item}</p>`).join(" ");
+  const html = data
+    .map((item) => `<p> <b>${item.author}:</b>${item.message}</p>`)
+    .join(" ");
   document.getElementById("messages").innerHTML = html;
 };
 
@@ -18,28 +18,39 @@ const handleSubmit = (evt) => {
   const ts = Date.now();
   const obj = {
     message: message.value,
-    author:author.value,
+    author: author.value,
     ts: ts,
   };
-  console.log(obj);
 
-  new Promise((resolve, reject) => {
-    let req = new XMLHttpRequest();
-    req.open('POST' , 'http://localhost:3000/chat/api/messages');
-    req.onload = function () {
-      if(req.status == 200)
-      {
-        ws.send(JSON.stringify(obj));
-        message.value = "";
-        author.value = "";
+  const options = {
+    method: "POST",
+    body: JSON.stringify(obj),
+    headers: { "Content-Type": "application/json" },
+  };
+  fetch("http://localhost:3000/chat/api/messages", options)
+    .then((res) => {
+      if(res.ok)
+      {ws.send("Msj");
+      message.value = "";
+      document.getElementById("error").innerHTML = "";
+      } else{
+        let err = "Rellene todos los campos";
+        if(obj.author !== '' && obj.message !== '')
+        {
+          err ='';
+          if(obj.author.split(' ').length < 2) 
+            err += "Debe poner por lo menos un nombre y apellido.<br>";
+          if(obj.message.length <5)
+            err += "El mensaje debe tener más de 5 caracteres";
+        }
+        document.getElementById("error").innerHTML =
+        '<p style="color:red;">' + err + "</p>";
       }
-      else
-        document.getElementById("error").innerHTML = '<p style="color:red;">Debe llenar todos los campos</p>';
-    }
-    req.send(obj);
-  }); 
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 const form = document.getElementById("form");
 form.addEventListener("submit", handleSubmit);
-
